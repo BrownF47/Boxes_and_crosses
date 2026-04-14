@@ -28,7 +28,14 @@ class NeuralNet():
         else: 
             return x
         
-    def propagate_forward(self):
+    def propagate_layer_forward(self, weights, biases, previous_layer):
         pass
+        #next_layer = np.matmul()
+    
+    def propagate_network_forward(self, input):
+
+        
+
+        
         
     
