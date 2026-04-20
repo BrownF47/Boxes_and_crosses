@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 import matplotlib.pyplot as plt
 import agents
@@ -13,12 +14,12 @@ class Line():
         self.point_1 = points[0]
         self.point_2 = points[1]
         self.player = player
-        self.orientation = self.point_1[0]==self.point_2[0]
+        self.vertical = self.point_1[0]==self.point_2[0]
         self.mid_point = ((self.point_1[0]+self.point_2[0])/2, (self.point_1[1]+self.point_2[1])/2)
     
     @classmethod
-    def from_midpoint(cls, mid_point: tuple, orientation: bool):
-        if orientation:
+    def from_midpoint(cls, mid_point: tuple, vertical: bool):
+        if vertical:
             point_1 = (mid_point[0], int(mid_point[1]-0.5))
             point_2 = (mid_point[0], int(mid_point[1]+0.5))
         else:
@@ -39,9 +40,9 @@ class Box():
         self.player = player
         self.box_color = 'black'
         if self.player == 'player_1':
-            self.box_color = 'red'
+            self.box_color = 'orangered'
         if self.player == 'player_2':
-            self.box_color = 'blue'
+            self.box_color = 'cornflowerblue'
 
 class Grid():
 
@@ -93,22 +94,30 @@ class Grid():
             print(f"Box at {box.box_center} for {box.player}")
 
     def plot_grid(self):
+        myLineWidth = 5
         for point in self.points:
             plt.scatter(point.point_coords[0], point.point_coords[1], color='black')
         for i,line in enumerate(self.lines):
             if self.played_by_1[i] == 1:
-                line_color = 'red'
+                line_color = 'orangered'
                 linestyle = '-'
+                linewidth = myLineWidth
             elif self.played_by_2[i] == 1:
-                line_color = 'blue'
+                line_color = 'cornflowerblue'
                 linestyle = '-'
+                linewidth = myLineWidth
             else:
                 line_color = 'black'
-                linestyle = ':' 
-            plt.plot([line.point_1[0], line.point_2[0]], [line.point_1[1], line.point_2[1]], color=line_color, linestyle=linestyle)
-            plt.text(line.mid_point[0], line.mid_point[1], f'{i}', size=16, color=line_color)
+                linestyle = ':'
+                linewidth = myLineWidth / 2 
+            plt.axis('off')
+            plt.plot([line.point_1[0], line.point_2[0]], [line.point_1[1], line.point_2[1]], color=line_color, linestyle=linestyle, linewidth=linewidth)
+            if line.vertical is True:
+                plt.text(line.mid_point[0]+0.05, line.mid_point[1], f'{i}', size=16, color=line_color)
+            else:
+                plt.text(line.mid_point[0], line.mid_point[1]+0.05, f'{i}', size=16, color=line_color)
         for box in self.boxes:
-            plt.scatter(box.box_center[0], box.box_center[1], color=box.box_color)
+            plt.scatter(box.box_center[0], box.box_center[1], color=box.box_color, s=200, marker='s')
         plt.savefig('Game_state.png')
 
     def check_point_exists(self, coords: tuple) -> bool:
@@ -143,7 +152,7 @@ class Grid():
         line_to_check = Line(move)
         played_lines = [obj for obj, a, b in zip(self.lines, self.played_by_1, self.played_by_2) if a == 1 or b == 1]
 
-        if line_to_check.orientation:
+        if line_to_check.vertical:
             box_1_center = (line_to_check.mid_point[0]-0.5, line_to_check.mid_point[1])
             box_2_center = (line_to_check.mid_point[0]+0.5, line_to_check.mid_point[1])
             box_centers = [box_1_center, box_2_center]
@@ -198,7 +207,7 @@ class Grid():
 def play_game(size):
     myGrid = Grid(size)
     Player_1 = agents.agent(agent_type='User', player='player_1')
-    Player_2 = agents.agent(agent_type='Random', player='player_2')
+    Player_2 = agents.agent(agent_type='User', player='player_2')
     while sum(myGrid.played_by_1) + sum(myGrid.played_by_2) < len(myGrid.lines):
         state = list(zip(myGrid.played_by_1, myGrid.played_by_2))
         myGrid.plot_grid()
